@@ -1,3 +1,2 @@
-# todo
-
-a [Sails](http://sailsjs.org) application
+# revvid
+reddit video api
