@@ -5,62 +5,62 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 
-module.exports = {
-	getHelloWorld: function (req, res) {
-
-
-		// get subreddit json
 var request = require('request');
-request('https://www.reddit.com/r/soccer/new.json', function (error, response, body) {
-  if (!error && response.statusCode == 200) {
-  	var json = JSON.parse(body);
-  	console.log(json.data.children[9].data);
-  	for(var i = 0; i < json.data.children.length; i++) {
-/*  		var url =json.data.children[0].data;
-*/
-/*console.log(json.data.children[i].data.domain);
-*/  		if(json.data.children[i].data.domain == "gfycat.com") {
-  			var url = json.data.children[i].data;
-		request(url, function (error, response, body1) {
-		  if (!error && response.statusCode == 200) {
-/*		  	  		console.log(json1["gfyItem"]["mp4Url"]);
-*/		  	  		console.log(body1);
+var Q = require('q');
 
+module.exports = {
 
+    getGfys: function(req, res) {
 
-				var jsonP = JSON.parse(body1);
-				console.log(body1);
+        var sub = req.param("subreddit");
 
-		  }
-		})  		}
+        var subredditJSON = sails.controllers.reddit.getSubredditJSON(sub).then(function(response) {
+            var amount = response.data.children.length;
+            var children = response.data.children;
+            for (var i = 0; i < amount; i++) {
+                if (children[i].data.domain === "gfycat.com") {
+                    console.log(children[i].data.url);
+                    var mp4 = sails.controllers.reddit.getGfyMP4(children[i].data.url).then(function(response) {
+                        console.log(response); // push to array
+                        return res.send(response); // To see result on browser
 
+                    });
+                }
+            }
 
+        });
+    },
 
+    getSubredditJSON: function(subredditname) {
+        var deferred = Q.defer();
+        console.log("getting JSON for: " + subredditname);
+        request('https://www.reddit.com/r/' + subredditname + '/new.json', function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var data = sails.controllers.reddit.parseJSON(body);
+                deferred.resolve(data);
+            }
+        });
+        return deferred.promise;
+    },
 
+    parseJSON: function(json) {
+        return JSON.parse(json);
+    },
 
-  	}
+    getUrlFromJsonNode: function(node) {
 
-	
+    },
+    getGfyMP4: function(gfy) {
+        var deferred = Q.defer();
+        var gfyname = gfy.substring('https://gfycat.com'.length);
 
+        var jsonurl = "https://gfycat.com/cajax/get/" + gfyname;
 
-
-
-   // console.log(body) // Show the HTML for the Google homepage.
-  }
-})
-		// parse json
-
-		//filter gfy links
-
-		// for each get gfy descr
-
-
-
-
-
-
-           console.log("Hello World !"); // To see result on console
-           return res.send("Hello World !"); // To see result on browser
-}
+        request(jsonurl, function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                deferred.resolve(JSON.parse(body)["gfyItem"]["mp4Url"]);
+            }
+        });
+        return deferred.promise;
+    }
 };
-
