@@ -21,24 +21,39 @@
  */
 module.exports = function(grunt) {
 
-  grunt.config.set('copy', {
-    dev: {
-      files: [{
-        expand: true,
-        cwd: './assets',
-        src: ['**/*.!(coffee|less)'],
-        dest: '.tmp/public'
-      }]
-    },
-    build: {
-      files: [{
-        expand: true,
-        cwd: '.tmp/public',
-        src: ['**/*'],
-        dest: 'www'
-      }]
-    }
-  });
+    grunt.config.set('copy', {
+        dev: {
+            files: [{
+                expand: true,
+                cwd: './assets',
+                src: ['**/*.!(coffee|less)'],
+                dest: '.tmp/public'
+            }, {
+                expand: true,
+                cwd: './node_modules/video.js/dist',
+                src: ['video.min.js'],
+                dest: '.tmp/public/js'
+            }, {
+                expand: true,
+                cwd: './node_modules/video.js/dist/ie8',
+                src: ['videojs-ie8.min.js'],
+                dest: '.tmp/public/js'
+            }, {
+                expand: true,
+                cwd: './node_modules/video.js/dist',
+                src: ['video-js.min.css'],
+                dest: '.tmp/public/css'
+            }, ]
+        },
+        build: {
+            files: [{
+                expand: true,
+                cwd: '.tmp/public',
+                src: ['**/*'],
+                dest: 'www'
+            }]
+        }
+    });
 
-  grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 };

@@ -31,9 +31,9 @@ module.exports.routes = {
      * `assets` directory)                                                      *
      *                                                                          *
      ***************************************************************************/
-    'GET /r/:subreddit': 'RedditController.getGfys',
+    'GET /r/:subreddit': 'WatchController.index',
     '/': {
-        view: 'homepage'
+        view: 'watch'
     }
 
     /***************************************************************************

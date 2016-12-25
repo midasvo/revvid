@@ -11,41 +11,86 @@ var RedditApi = require('reddit-oauth');
 var sleep = require('sleep');
 module.exports = {
 
-    getGfys: function(req, res) {
+    getVideoSources: function(children) {
 
-        var sub = req.param("subreddit");
+        var amount = children.length;
+        console.log("Received " + amount + " posts");
+        var array = [];
+        var promises = [];
+        for (var i = 0; i < amount; i++) {
+            var deferred = Q.defer();
 
-        var subredditJSON = sails.controllers.reddit.getSubredditJSON(sub).then(function(response) {
-            var amount = response.data.children.length;
-            console.log(amount);
-            var children = response.data.children;
-            for (var i = 0; i < amount; i++) {
-                /*                console.log(children[i].data.domain);
+            /*            console.log("Checking if post origin is gfycat...");
+             */
+            if (children[i].data.domain === "gfycat.com") {
+                /*                console.log("Found gfycat!");
+                                console.log("Retrieving mp4..");
+                */
+
+                var prom = sails.controllers.reddit.getGfyMP4(children[i].data.url).then(function(result) {
+                    return result;
+                });
+                promises.push(prom);
+
+            } else {
+                /*                console.log(children[i].data.domain + " is not gfycat, skipping.");
                  */
-                if (children[i].data.domain === "gfycat.com") {
-                    /*                    console.log(children[i].data.url);
-                     */
-                    var mp4 = sails.controllers.reddit.getGfyMP4(children[i].data.url).then(function(response) {
-                        console.log(response); // push to array
-
-                    });
-                }
             }
+        }
+        return Q.all(promises);
+    },
 
+    /*
+function get_all_the_things(things) {
+    var the_promises = [];
+
+    things.forEach(function(thing) {
+        var deferred = Q.defer();
+        get_a_thing(thing, function(result) {
+            deferred.resolve(result);
         });
+        the_promises.push(deferred.promise);
+    });
+
+    return Q.all(the_promises);
+}
+    */
+
+    getGfys: function(sub) {
+        var deferred = Q.defer();
+        var deferred1 = Q.defer();
+
+        console.log("Retrieving gfys from sub: " + sub);
+
+        sails.controllers.reddit.getSubredditJSON(sub).then(function(response) {
+            console.log("Retrieved JSON");
+            return response.data;
+
+        }).then(function(data) {
+            /*            console.log(data.children[1].data);
+             */
+            sails.controllers.reddit.getVideoSources(data.children).then(function(eg) {
+                console.log(eg);
+                deferred1.resolve(eg);
+
+            });
+        });
+
+        return deferred1.promise;
     },
 
     getSubredditJSON: function(subredditname) {
         var deferred = Q.defer();
         /*        console.log("getting JSON for: " + subredditname);
          */
-        https: //www.reddit.com/r/porninfifteenseconds/.json?limit=1000000000000
-            request('https://www.reddit.com/r/' + subredditname + '/new.json?limit=100', function(error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    var data = sails.controllers.reddit.parseJSON(body);
-                    deferred.resolve(data);
-                }
-            });
+        /*        https: //www.reddit.com/r/porninfifteenseconds/.json?limit=1000000000000
+         */
+        request('https://www.reddit.com/r/' + subredditname + '/new.json', function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var data = sails.controllers.reddit.parseJSON(body);
+                deferred.resolve(data);
+            }
+        });
         return deferred.promise;
     },
 
@@ -58,19 +103,23 @@ module.exports = {
     },
     getGfyMP4: function(gfy) {
         var deferred = Q.defer();
-        /*        console.log("gfy: " + gfy);
-         */
         var gfyname = gfy.substring('https://gfycat.com'.length);
-
-        var jsonurl = "https://gfycat.com/cajax/get/" + gfyname;
-
+        var jsonurl = "https://gfycat.com/cajax/get" + gfyname;
+        /*        console.log("Preparing mp4 retrieval for " + gfy + ", request url is: " + jsonurl);
+         */
         request(jsonurl, function(error, response, body) {
+            /*            console.log("Request finished for: " + jsonurl);
+             */
             if (!error && response.statusCode == 200) {
-                console.log("[-------------------------------------]");
-                console.log(JSON.parse(body)["gfyItem"]);
-                console.log("[-------------------------------------]");
-
-                deferred.resolve(JSON.parse(body)["gfyItem"]["mp4Url"]);
+                /*                console.log("Finished with status code: " + response.statusCode)
+                 */
+                var gfyItem = JSON.parse(body)["gfyItem"];
+                /*                console.log("Attempted parse result: " + gfyItem["mp4Url"]);
+                 */
+                deferred.resolve(gfyItem["mp4Url"]);
+            } else {
+                /*                console.log("Request finished with error code : " + error + ", for " + jsonurl);
+                 */
             }
         });
         return deferred.promise;
