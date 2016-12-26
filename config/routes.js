@@ -34,7 +34,9 @@ module.exports.routes = {
     'GET /r/:subreddit': 'WatchController.index',
     '/': {
         view: 'watch'
-    }
+    },
+
+    'GET /api/r/:subreddit': 'RedditController.getGfysJSON'
 
     /***************************************************************************
      *                                                                          *

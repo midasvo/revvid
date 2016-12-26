@@ -78,7 +78,27 @@ function get_all_the_things(things) {
 
         return deferred1.promise;
     },
+    getGfysJSON: function(req, res) {
+        var deferred = Q.defer();
+        var deferred1 = Q.defer();
+        var sub = req.param('subreddit');
+        console.log("Retrieving gfys from sub: " + req.param('subreddit'));
 
+        sails.controllers.reddit.getSubredditJSON(sub).then(function(response) {
+            console.log("Retrieved JSON");
+            return response.data;
+
+        }).then(function(data) {
+            /*            console.log(data.children[1].data);
+             */
+            sails.controllers.reddit.getVideoSources(data.children).then(function(eg) {
+                console.log(eg);
+                deferred1.resolve(eg);
+                return res.json(eg);
+            });
+        });
+
+    },
     getSubredditJSON: function(subredditname) {
         var deferred = Q.defer();
         /*        console.log("getting JSON for: " + subredditname);

@@ -5,7 +5,7 @@
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
 var reddit = require("./RedditController.js");
-
+var $ = require('cheerio');
 module.exports = {
     index: function(request, response) {
         var sub = request.param('subreddit');

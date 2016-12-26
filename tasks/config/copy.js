@@ -43,6 +43,21 @@ module.exports = function(grunt) {
                 cwd: './node_modules/video.js/dist',
                 src: ['video-js.min.css'],
                 dest: '.tmp/public/css'
+            }, {
+                expand: true,
+                cwd: './node_modules/videojs-playlist/dist',
+                src: ['videojs-playlist.min.js'],
+                dest: '.tmp/public/js'
+            }, {
+                expand: true,
+                cwd: '/node_modules/videojs-playlist/dist',
+                src: ['video-js.min.css'],
+                dest: '.tmp/public/css'
+            }, {
+                expand: true,
+                cwd: '/assets/js',
+                src: ['videoController.js'],
+                dest: '.tmp/public/js'
             }, ]
         },
         build: {
